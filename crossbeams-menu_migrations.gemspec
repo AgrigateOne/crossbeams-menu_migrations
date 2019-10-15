@@ -10,9 +10,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['James Silberbauer']
   spec.email         = ['jamessil@telkomsa.net']
 
-  spec.summary       = 'TODO: Write a short summary, because RubyGems requires one.'
-  spec.description   = 'TODO: Write a longer description or delete this line.'
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = 'Manage menu item migrations for Crossbeams framework projects'
+  spec.homepage      = 'https://github.com/NoSoft-SA'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -33,5 +32,9 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler', '~> 1.16'
   spec.add_development_dependency 'minitest', '~> 5.0'
+  spec.add_development_dependency 'minitest-rg'
+  spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'yard'
 end
