@@ -1,0 +1,30 @@
+AllCops:
+  Exclude:
+    - test/**/*
+    - tmp/**/*
+  TargetRubyVersion: 2.4
+
+# Documentation:
+#   Enabled: false
+
+LineLength:
+  Enabled: false
+
+FrozenStringLiteralComment:
+  Enabled: false
+
+MethodLength:
+  Enabled: false
+
+Layout/ExtraSpacing:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - '*.gemspec'
+    - 'Rakefile'
+    - '**/*.rake'
+    - 'spec/**/*.rb'
+
+Layout/SpaceAroundOperators:
+  AllowForAlignment: true
