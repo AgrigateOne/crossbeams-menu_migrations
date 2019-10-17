@@ -160,13 +160,14 @@ module Crossbeams
         end
 
         def add_program_function(key, functional_area:, program:, seq: 1, group: nil, url:, restricted: false, show_in_iframe: false) # rubocop:disable Metrics/ParameterLists
+          group_name = "'#{group}'" if group
           @script << <<~SQL
             INSERT INTO program_functions (program_id, program_function_name, url, program_function_sequence,
                                            group_name, restricted_user_access, show_in_iframe)
             VALUES ((SELECT id FROM programs WHERE program_name = '#{program}'
                       AND functional_area_id = (SELECT id FROM functional_areas
                                                 WHERE functional_area_name = '#{functional_area}')),
-                    '#{key}', '#{url}', #{seq}, #{group || 'NULL'}, #{restricted}, #{show_in_iframe});
+                    '#{key}', '#{url}', #{seq}, #{group_name || 'NULL'}, #{restricted}, #{show_in_iframe});
           SQL
         end
 
