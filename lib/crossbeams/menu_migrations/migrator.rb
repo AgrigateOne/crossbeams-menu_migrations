@@ -237,6 +237,7 @@ module Crossbeams
 
       def initialize(db, directory, target = nil)
         @db = db
+        setup_table
         @directory = directory
         @target = target
         @files = migration_files
@@ -245,8 +246,6 @@ module Crossbeams
       end
 
       def run
-        setup_table
-
         migration_tuples.each do |m, f, direction|
           m.apply(db, direction, f)
         end
