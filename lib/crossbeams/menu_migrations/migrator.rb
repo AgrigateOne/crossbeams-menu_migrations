@@ -316,7 +316,7 @@ module Crossbeams
 
         db.instance_exec do
           create_table(:menu_migrations) do
-            primary_key :filename, type: String
+            String :filename, primary_key: true
           end
         end
       end
