@@ -171,12 +171,17 @@ module Crossbeams
           SQL
         end
 
-        def drop_program_function(key, functional_area:, program:)
-          @script << "DELETE FROM program_functions_users WHERE program_function_id = (SELECT id FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}')));"
-          @script << "DELETE FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'));"
+        def drop_program_function(key, functional_area:, program:, match_group: nil)
+          group_where = if match_group
+                          " AND group_name = '#{match_group}'"
+                        else
+                          ''
+                        end
+          @script << "DELETE FROM program_functions_users WHERE program_function_id = (SELECT id FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where});"
+          @script << "DELETE FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where};"
         end
 
-        PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename].freeze
+        PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename match_group].freeze
         def change_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
           raise "Cannot change program function #{key} - no changes given" if options.empty? || options.length == 2
           raise "Cannot change program function #{key} - no functional area given" unless options[:functional_area]
@@ -189,11 +194,16 @@ module Crossbeams
             s = options[:group].nil? ? 'group_name = NULL' : "group_name = '#{options[:group]}'"
             changes << s
           end
+          group_where = if options[:match_group]
+                          " AND group_name = '#{options[:match_group]}'"
+                        else
+                          ''
+                        end
           changes << "url = '#{options[:url]}'" if options[:url]
           changes << "restricted_user_access = #{options[:restricted]}" if options[:restricted]
           changes << "show_in_iframe = #{options[:show_in_iframe]}" if options[:show_in_iframe]
           changes << "program_function_name = '#{options[:rename]}'" if options[:rename]
-          @script << "UPDATE program_functions SET #{changes.join(', ')} WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{options[:program]}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}'));"
+          @script << "UPDATE program_functions SET #{changes.join(', ')} WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{options[:program]}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}'))#{group_where};"
         end
       end
 
