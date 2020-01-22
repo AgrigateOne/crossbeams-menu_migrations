@@ -175,7 +175,7 @@ module Crossbeams
           group_where = if match_group
                           " AND group_name = '#{match_group}'"
                         else
-                          ''
+                          ' AND group_name IS NULL'
                         end
           @script << "DELETE FROM program_functions_users WHERE program_function_id = (SELECT id FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where});"
           @script << "DELETE FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where};"
@@ -197,7 +197,7 @@ module Crossbeams
           group_where = if options[:match_group]
                           " AND group_name = '#{options[:match_group]}'"
                         else
-                          ''
+                          ' AND group_name IS NULL'
                         end
           changes << "url = '#{options[:url]}'" if options[:url]
           changes << "restricted_user_access = #{options[:restricted]}" if options[:restricted]
