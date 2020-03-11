@@ -68,12 +68,12 @@ module Crossbeams
         end
 
         F_KEYS = %i[rmd_menu rename].freeze
-        def change_functional_area(key, options = {})
+        def change_functional_area(key, options = {}) # rubocop:disable Metrics/AbcSize
           raise "Cannot change functional area #{key} - no changes given" if options.empty?
           raise "Cannot change functional area #{key} - invalid options" unless options.keys.all? { |o| F_KEYS.include?(o) }
 
           changes = []
-          changes << "rmd_menu = #{options[:rmd_menu]}" if options[:rmd_menu]
+          changes << "rmd_menu = #{options[:rmd_menu]}" unless options[:rmd_menu].nil?
           changes << "functional_area_name = '#{options[:rename]}'" if options[:rename]
           @script << "UPDATE functional_areas SET #{changes.join(', ')} WHERE functional_area_name ='#{key}';"
         end
@@ -200,8 +200,8 @@ module Crossbeams
                           ' AND group_name IS NULL'
                         end
           changes << "url = '#{options[:url]}'" if options[:url]
-          changes << "restricted_user_access = #{options[:restricted]}" if options[:restricted]
-          changes << "show_in_iframe = #{options[:show_in_iframe]}" if options[:show_in_iframe]
+          changes << "restricted_user_access = #{options[:restricted]}" unless options[:restricted].nil?
+          changes << "show_in_iframe = #{options[:show_in_iframe]}" unless options[:show_in_iframe].nil?
           changes << "program_function_name = '#{options[:rename]}'" if options[:rename]
           @script << "UPDATE program_functions SET #{changes.join(', ')} WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{options[:program]}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}'))#{group_where};"
         end
