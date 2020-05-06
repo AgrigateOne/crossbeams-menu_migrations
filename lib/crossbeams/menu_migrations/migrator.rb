@@ -4,6 +4,8 @@ module Crossbeams
   module MenuMigrations
     # Migrate menu items (largely based on the code for Sequel's maigration)
     class Migrator
+      class Error < StandardError; end
+
       MIGRATION_FILE_PATTERN = /\A(\d+)_.+\.rb\z/i.freeze
 
       # Mutex used around migration file loading
