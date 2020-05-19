@@ -41,6 +41,7 @@ There are nine migration methods:
 * `change_functional_area` - changes aspects of a `functional_areas` record.
 * `change_program` - changes aspects of a `programs` record.
 * `change_program_function` - changes aspects of a `program_functions` record.
+* `move_program_function` - moves a `program_functions` record to another program.
 
 ```ruby
 Crossbeams::MenuMigrations::Migrator.migration('Nspack') do
@@ -62,9 +63,11 @@ Crossbeams::MenuMigrations::Migrator.migration('Nspack') do
     change_functional_area 'Dummy', rename: 'Fred'
     change_program 'This', functional_area: 'Fred', seq: 33, rename: 'Other'
     change_program_function 'Thing', functional_area: 'Fred', program: 'Other', seq: 22, url: '/another/path/here', group: 'Together',  rename: 'Object'
+    move_program_function 'Thing', functional_area: 'Fred', program: 'Other', to_program: 'That'
   end
 
   down do
+    move_program_function 'Thing', functional_area: 'Fred', program: 'That', to_program: 'Thing'
     change_program_function 'Object', functional_area: 'Fred', program: 'Other', seq: 1, url: '/a/path', group: nil,  rename: 'Thing'
     change_functional_area 'Fred', rename: 'Dummy'
     change_program 'Other', functional_area: 'Dummy', seq: 33, rename: 'This'

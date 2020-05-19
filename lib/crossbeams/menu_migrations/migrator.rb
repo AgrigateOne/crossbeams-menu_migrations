@@ -183,6 +183,27 @@ module Crossbeams
           @script << "DELETE FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where};"
         end
 
+        PF_MOVE_KEYS = %i[functional_area program to_program to_functional_area].freeze
+        def move_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
+          raise "Cannot move program function #{key} - no target program given" if options.empty? || options.length == 2
+          raise "Cannot move program function #{key} - no functional area given" unless options[:functional_area]
+          raise "Cannot move program function #{key} - no program given" unless options[:program]
+          raise "Cannot move program function #{key} - invalid options" unless options.keys.all? { |o| PF_MOVE_KEYS.include?(o) }
+
+          sql = <<~SQL
+            UPDATE program_functions
+            SET program_id = (SELECT id FROM programs WHERE program_name = '#{options[:to_program]}'
+                              AND functional_area_id = (SELECT id FROM functional_areas
+                              WHERE functional_area_name ='#{options[:to_functional_area] || options[:functional_area]}'))
+            WHERE program_function_name = '#{key}'
+              AND program_id = (SELECT id FROM programs
+                                WHERE program_name = '#{options[:program]}'
+                                AND functional_area_id = (SELECT id FROM functional_areas
+                                                          WHERE functional_area_name ='#{options[:functional_area]}'));
+          SQL
+          @script << sql.gsub(/\n\s*/, ' ').rstrip
+        end
+
         PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename match_group].freeze
         def change_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
           raise "Cannot change program function #{key} - no changes given" if options.empty? || options.length == 2
