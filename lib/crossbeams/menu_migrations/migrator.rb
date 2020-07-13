@@ -161,15 +161,23 @@ module Crossbeams
           @script << "UPDATE programs SET #{changes.join(', ')} WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}');"
         end
 
-        def add_program_function(key, functional_area:, program:, seq: 1, group: nil, url:, restricted: false, show_in_iframe: false) # rubocop:disable Metrics/ParameterLists
+        def add_program_function(key, functional_area:, program:, seq: 1, group: nil, url:, restricted: false, show_in_iframe: false, hide_if_const_true: nil, hide_if_const_false: nil) # rubocop:disable Metrics/ParameterLists
           group_name = "'#{group}'" if group
+          if hide_if_const_true
+            head_true = ', hide_if_const_true'
+            hide_true = ", '#{hide_if_const_true}'" if hide_if_const_true
+          end
+          if hide_if_const_false
+            head_false = ', hide_if_const_false'
+            hide_false = ", '#{hide_if_const_false}'"
+          end
           @script << <<~SQL
             INSERT INTO program_functions (program_id, program_function_name, url, program_function_sequence,
-                                           group_name, restricted_user_access, show_in_iframe)
+                                           group_name, restricted_user_access, show_in_iframe#{head_true}#{head_false})
             VALUES ((SELECT id FROM programs WHERE program_name = '#{program}'
                       AND functional_area_id = (SELECT id FROM functional_areas
                                                 WHERE functional_area_name = '#{functional_area}')),
-                    '#{key}', '#{url}', #{seq}, #{group_name || 'NULL'}, #{restricted}, #{show_in_iframe});
+                    '#{key}', '#{url}', #{seq}, #{group_name || 'NULL'}, #{restricted}, #{show_in_iframe}#{hide_true}#{hide_false});
           SQL
         end
 
@@ -204,7 +212,7 @@ module Crossbeams
           @script << sql.gsub(/\n\s*/, ' ').rstrip
         end
 
-        PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename match_group].freeze
+        PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename match_group hide_if_const_true hide_if_const_false].freeze
         def change_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
           raise "Cannot change program function #{key} - no changes given" if options.empty? || options.length == 2
           raise "Cannot change program function #{key} - no functional area given" unless options[:functional_area]
@@ -222,6 +230,14 @@ module Crossbeams
                         else
                           ' AND group_name IS NULL'
                         end
+          if options.key?(:hide_if_const_true)
+            s = options[:hide_if_const_true].nil? ? 'hide_if_const_true = NULL' : "hide_if_const_true = '#{options[:hide_if_const_true]}'"
+            changes << s
+          end
+          if options.key?(:hide_if_const_false)
+            s = options[:hide_if_const_false].nil? ? 'hide_if_const_false = NULL' : "hide_if_const_false = '#{options[:hide_if_const_false]}'"
+            changes << s
+          end
           changes << "url = '#{options[:url]}'" if options[:url]
           changes << "restricted_user_access = #{options[:restricted]}" unless options[:restricted].nil?
           changes << "show_in_iframe = #{options[:show_in_iframe]}" unless options[:show_in_iframe].nil?
