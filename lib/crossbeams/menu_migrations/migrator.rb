@@ -2,8 +2,8 @@
 
 module Crossbeams
   module MenuMigrations
-    # Migrate menu items (largely based on the code for Sequel's maigration)
-    class Migrator
+    # Migrate menu items (largely based on the code for Sequel's migration)
+    class Migrator # rubocop:disable Metrics/ClassLength
       class Error < StandardError; end
 
       MIGRATION_FILE_PATTERN = /\A(\d+)_.+\.rb\z/i.freeze
@@ -334,10 +334,25 @@ module Crossbeams
         files = []
         Dir.new(directory).each do |file|
           next unless MIGRATION_FILE_PATTERN.match(file)
+          raise Error, "#{file} does not start with a valid datetime" unless file_date_valid?(file)
 
           files << File.join(directory, file)
         end
         files.sort_by { |f| MIGRATION_FILE_PATTERN.match(File.basename(f))[1].to_i }
+      end
+
+      # Check that the first characters of the filename form a valid date/time
+      def file_date_valid?(file)
+        dt = file.split('_').first
+        return false if dt.length != 12
+
+        begin
+          Time.parse(dt)
+        rescue StandardError
+          return false
+        end
+
+        true
       end
 
       # Returns tuples of migration, filename, and direction
