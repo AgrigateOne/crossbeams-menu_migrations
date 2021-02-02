@@ -335,6 +335,7 @@ module Crossbeams
         Dir.new(directory).each do |file|
           next unless MIGRATION_FILE_PATTERN.match(file)
           raise Error, "#{file} does not start with a valid datetime" unless file_date_valid?(file)
+          raise Error, "#{file} name is invalid - it must be all lowercase" unless file == file.downcase
 
           files << File.join(directory, file)
         end
