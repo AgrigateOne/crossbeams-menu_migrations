@@ -57,10 +57,12 @@ module Crossbeams
         # -- DSL methods
         # ------------------------------------------------------------------
         def add_functional_area(key, rmd_menu: false)
+          check_string!(key)
           @script << "INSERT INTO functional_areas (functional_area_name, rmd_menu) VALUES('#{key}', #{rmd_menu});"
         end
 
         def drop_functional_area(key)
+          check_string!(key)
           @script << "DELETE FROM program_functions_users WHERE program_function_id IN (SELECT id FROM program_functions WHERE program_id IN (SELECT id FROM programs WHERE functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{key}')));"
           @script << "DELETE FROM program_functions WHERE program_id IN (SELECT id FROM programs WHERE functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{key}'));"
           @script << "DELETE FROM programs_webapps WHERE program_id IN (SELECT id FROM programs WHERE functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{key}'));"
@@ -71,6 +73,7 @@ module Crossbeams
 
         F_KEYS = %i[rmd_menu rename].freeze
         def change_functional_area(key, options = {}) # rubocop:disable Metrics/AbcSize
+          check_string!(key)
           raise "Cannot change functional area #{key} - no changes given" if options.empty?
           raise "Cannot change functional area #{key} - invalid options" unless options.keys.all? { |o| F_KEYS.include?(o) }
 
@@ -89,6 +92,7 @@ module Crossbeams
         end
 
         def add_program(key, functional_area:, seq: 1)
+          check_string!(key, functional_area)
           @script << <<~SQL
             INSERT INTO programs (program_name, program_sequence, functional_area_id)
             VALUES ('#{key}', #{seq}, (SELECT id FROM functional_areas WHERE functional_area_name = '#{functional_area}'));
@@ -99,6 +103,7 @@ module Crossbeams
         end
 
         def drop_program(key, functional_area:)
+          check_string!(key, functional_area)
           @script << <<~SQL
             DELETE FROM program_functions_users
             WHERE program_function_id IN (
@@ -155,6 +160,8 @@ module Crossbeams
           raise "Cannot change program #{key} - no functional area given" unless options[:functional_area]
           raise "Cannot change program #{key} - invalid options" unless options.keys.all? { |o| P_KEYS.include?(o) }
 
+          check_string!(key, options[:functional_area])
+
           changes = []
           changes << "program_sequence = #{options[:seq]}" if options[:seq]
           changes << "program_name = '#{options[:rename]}'" if options[:rename]
@@ -162,6 +169,7 @@ module Crossbeams
         end
 
         def add_program_function(key, functional_area:, program:, seq: 1, group: nil, url:, restricted: false, show_in_iframe: false, hide_if_const_true: nil, hide_if_const_false: nil) # rubocop:disable Metrics/ParameterLists
+          check_string!(key, functional_area, program, group)
           group_name = "'#{group}'" if group
           if hide_if_const_true
             head_true = ', hide_if_const_true'
@@ -182,6 +190,7 @@ module Crossbeams
         end
 
         def drop_program_function(key, functional_area:, program:, match_group: nil)
+          check_string!(key, functional_area, program, match_group)
           group_where = if match_group
                           " AND group_name = '#{match_group}'"
                         else
@@ -197,6 +206,8 @@ module Crossbeams
           raise "Cannot move program function #{key} - no functional area given" unless options[:functional_area]
           raise "Cannot move program function #{key} - no program given" unless options[:program]
           raise "Cannot move program function #{key} - invalid options" unless options.keys.all? { |o| PF_MOVE_KEYS.include?(o) }
+
+          check_string!(key, options[:functional_area], options[:program], options[:to_program], options[:to_functional_area])
 
           sql = <<~SQL
             UPDATE program_functions
@@ -218,6 +229,8 @@ module Crossbeams
           raise "Cannot change program function #{key} - no functional area given" unless options[:functional_area]
           raise "Cannot change program function #{key} - no program given" unless options[:program]
           raise "Cannot change program function #{key} - invalid options" unless options.keys.all? { |o| PF_KEYS.include?(o) }
+
+          check_string!(key, options[:functional_area], options[:program], options[:group], options[:rename], options[:match_group], options[:hide_if_const_true], options[:hide_if_const_false])
 
           changes = []
           changes << "program_function_sequence = #{options[:seq]}" if options[:seq]
@@ -243,6 +256,16 @@ module Crossbeams
           changes << "show_in_iframe = #{options[:show_in_iframe]}" unless options[:show_in_iframe].nil?
           changes << "program_function_name = '#{options[:rename]}'" if options[:rename]
           @script << "UPDATE program_functions SET #{changes.join(', ')} WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{options[:program]}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}'))#{group_where};"
+        end
+
+        private
+
+        def check_string!(*args)
+          args.each do |arg|
+            next if arg.nil?
+
+            raise %(Invalid string - "#{arg}" is padded with spaces) if arg.strip != arg
+          end
         end
       end
 
