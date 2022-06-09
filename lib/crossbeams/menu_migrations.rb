@@ -6,6 +6,6 @@ require 'crossbeams/menu_migrations/migrator'
 module Crossbeams
   # Migrate menu items for Crossbeams framework projects
   module MenuMigrations
-    # Your code goes here...
+    class Error < StandardError; end
   end
 end

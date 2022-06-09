@@ -74,8 +74,8 @@ module Crossbeams
         F_KEYS = %i[rmd_menu rename].freeze
         def change_functional_area(key, options = {}) # rubocop:disable Metrics/AbcSize
           check_string!(key)
-          raise "Cannot change functional area #{key} - no changes given" if options.empty?
-          raise "Cannot change functional area #{key} - invalid options" unless options.keys.all? { |o| F_KEYS.include?(o) }
+          raise Error, "Cannot change functional area #{key} - no changes given" if options.empty?
+          raise Error, "Cannot change functional area #{key} - invalid options" unless options.keys.all? { |o| F_KEYS.include?(o) }
 
           changes = []
           changes << "rmd_menu = #{options[:rmd_menu]}" unless options[:rmd_menu].nil?
@@ -156,9 +156,9 @@ module Crossbeams
 
         P_KEYS = %i[functional_area seq rename].freeze
         def change_program(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
-          raise "Cannot change program #{key} - no changes given" if options.empty? || options.length == 1
-          raise "Cannot change program #{key} - no functional area given" unless options[:functional_area]
-          raise "Cannot change program #{key} - invalid options" unless options.keys.all? { |o| P_KEYS.include?(o) }
+          raise Error, "Cannot change program #{key} - no changes given" if options.empty? || options.length == 1
+          raise Error, "Cannot change program #{key} - no functional area given" unless options[:functional_area]
+          raise Error, "Cannot change program #{key} - invalid options" unless options.keys.all? { |o| P_KEYS.include?(o) }
 
           check_string!(key, options[:functional_area])
 
@@ -196,16 +196,16 @@ module Crossbeams
                         else
                           ' AND group_name IS NULL'
                         end
-          @script << "DELETE FROM program_functions_users WHERE program_function_id = (SELECT id FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where});"
+          @script << "DELETE FROM program_functions_users WHERE program_function_id = (SELECT id FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where});"
           @script << "DELETE FROM program_functions WHERE program_function_name = '#{key}' AND program_id = (SELECT id FROM programs WHERE program_name = '#{program}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{functional_area}'))#{group_where};"
         end
 
         PF_MOVE_KEYS = %i[functional_area program to_program to_functional_area].freeze
         def move_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
-          raise "Cannot move program function #{key} - no target program given" if options.empty? || options.length == 2
-          raise "Cannot move program function #{key} - no functional area given" unless options[:functional_area]
-          raise "Cannot move program function #{key} - no program given" unless options[:program]
-          raise "Cannot move program function #{key} - invalid options" unless options.keys.all? { |o| PF_MOVE_KEYS.include?(o) }
+          raise Error, "Cannot move program function #{key} - no target program given" if options.empty? || options.length == 2
+          raise Error, "Cannot move program function #{key} - no functional area given" unless options[:functional_area]
+          raise Error, "Cannot move program function #{key} - no program given" unless options[:program]
+          raise Error, "Cannot move program function #{key} - invalid options" unless options.keys.all? { |o| PF_MOVE_KEYS.include?(o) }
 
           check_string!(key, options[:functional_area], options[:program], options[:to_program], options[:to_functional_area])
 
@@ -225,10 +225,10 @@ module Crossbeams
 
         PF_KEYS = %i[functional_area program seq group url restricted show_in_iframe rename match_group hide_if_const_true hide_if_const_false].freeze
         def change_program_function(key, options = {}) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-          raise "Cannot change program function #{key} - no changes given" if options.empty? || options.length == 2
-          raise "Cannot change program function #{key} - no functional area given" unless options[:functional_area]
-          raise "Cannot change program function #{key} - no program given" unless options[:program]
-          raise "Cannot change program function #{key} - invalid options" unless options.keys.all? { |o| PF_KEYS.include?(o) }
+          raise Error, "Cannot change program function #{key} - no changes given" if options.empty? || options.length == 2
+          raise Error, "Cannot change program function #{key} - no functional area given" unless options[:functional_area]
+          raise Error, "Cannot change program function #{key} - no program given" unless options[:program]
+          raise Error, "Cannot change program function #{key} - invalid options" unless options.keys.all? { |o| PF_KEYS.include?(o) }
 
           check_string!(key, options[:functional_area], options[:program], options[:group], options[:rename], options[:match_group], options[:hide_if_const_true], options[:hide_if_const_false])
 
@@ -264,7 +264,7 @@ module Crossbeams
           args.each do |arg|
             next if arg.nil?
 
-            raise %(Invalid string - "#{arg}" is padded with spaces) if arg.strip != arg
+            raise Error, %(Invalid string - "#{arg}" is padded with spaces) if arg.strip != arg
           end
         end
       end
