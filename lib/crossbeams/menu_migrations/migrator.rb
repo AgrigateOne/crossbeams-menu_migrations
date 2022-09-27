@@ -46,9 +46,10 @@ module Crossbeams
                      end
           @script << 'COMMIT;'
 
-          puts "- #{direction == :up ? 'Applying' : 'Reversing'}: #{filename}"
+          puts "- #{direction == :up ? 'Applying' : 'Reversing'}: #{filename}" unless ENV['TEST_RUN']
           if @dry_run
-            puts @script.join("\n")
+            puts @script.join("\n") unless ENV['TEST_RUN']
+            @script
           else
             db.execute(@script.join("\n"))
           end

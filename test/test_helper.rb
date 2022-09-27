@@ -5,3 +5,4 @@ require 'crossbeams/menu_migrations'
 
 require 'minitest/autorun'
 require 'minitest/rg'
+ENV['TEST_RUN'] = 'y'
