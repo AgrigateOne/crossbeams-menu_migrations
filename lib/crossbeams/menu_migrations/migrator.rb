@@ -23,7 +23,7 @@ module Crossbeams
         # Proc used for the up action
         attr_accessor :up
 
-        def initialize(webapp, dry_run = false)
+        def initialize(webapp, dry_run: false)
           @webapp = webapp
           @script = nil
           @dry_run = dry_run
@@ -31,7 +31,7 @@ module Crossbeams
 
         # Apply the appropriate block to generate
         # a script to run within a transaction.
-        def apply(db, direction, filename) # rubocop:disable Metrics/AbcSize , Metrics/PerceivedComplexity
+        def apply(db, direction, filename)
           raise(ArgumentError, "Invalid migration direction specified (#{direction.inspect})") unless %i[up down].include?(direction)
 
           @script = ['BEGIN;']
@@ -46,9 +46,10 @@ module Crossbeams
                      end
           @script << 'COMMIT;'
 
-          puts "- #{direction == :up ? 'Applying' : 'Reversing'}: #{filename}"
+          puts "- #{direction == :up ? 'Applying' : 'Reversing'}: #{filename}" unless ENV['TEST_RUN']
           if @dry_run
-            puts @script.join("\n")
+            puts @script.join("\n") unless ENV['TEST_RUN']
+            @script
           else
             db.execute(@script.join("\n"))
           end
@@ -72,7 +73,7 @@ module Crossbeams
         end
 
         F_KEYS = %i[rmd_menu rename].freeze
-        def change_functional_area(key, options = {}) # rubocop:disable Metrics/AbcSize
+        def change_functional_area(key, options = {})
           check_string!(key)
           raise Error, "Cannot change functional area #{key} - no changes given" if options.empty?
           raise Error, "Cannot change functional area #{key} - invalid options" unless options.keys.all? { |o| F_KEYS.include?(o) }
@@ -168,7 +169,7 @@ module Crossbeams
           @script << "UPDATE programs SET #{changes.join(', ')} WHERE program_name = '#{key}' AND functional_area_id = (SELECT id FROM functional_areas WHERE functional_area_name ='#{options[:functional_area]}');"
         end
 
-        def add_program_function(key, functional_area:, program:, seq: 1, group: nil, url:, restricted: false, show_in_iframe: false, hide_if_const_true: nil, hide_if_const_false: nil) # rubocop:disable Metrics/ParameterLists
+        def add_program_function(key, functional_area:, program:, url:, seq: 1, group: nil, restricted: false, show_in_iframe: false, hide_if_const_true: nil, hide_if_const_false: nil) # rubocop:disable Metrics/ParameterLists
           check_string!(key, functional_area, program, group)
           group_name = "'#{group}'" if group
           if hide_if_const_true
@@ -280,7 +281,7 @@ module Crossbeams
 
         # Create a new migration class, and instance_exec the block.
         def initialize(webapp, dry_run, &block)
-          @migration = SimpleMigration.new(webapp, dry_run)
+          @migration = SimpleMigration.new(webapp, dry_run: dry_run || false)
           Migrator.migrations << migration
           instance_exec(&block)
         end
@@ -300,12 +301,11 @@ module Crossbeams
         new(db, directory, target).run
       end
 
-      def self.migration(webapp, dry_run = false, &block)
+      def self.migration(webapp, dry_run: false, &block)
         MigrationDSL.create(webapp, dry_run, &block)
       end
 
-      attr_reader :db, :directory, :target
-      attr_reader :files, :applied_migrations, :migration_tuples
+      attr_reader :db, :directory, :target, :files, :applied_migrations, :migration_tuples
 
       def initialize(db, directory, target = nil)
         @db = db
@@ -353,7 +353,7 @@ module Crossbeams
       end
 
       # Returns any migration files found in the migrator's directory.
-      def migration_files
+      def migration_files # rubocop:disable Metrics/AbcSize
         files = []
         Dir.new(directory).each do |file|
           next unless MIGRATION_FILE_PATTERN.match(file)
