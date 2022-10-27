@@ -2,18 +2,23 @@ AllCops:
   Exclude:
     - test/**/*
     - tmp/**/*
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.7
+  NewCops: enable
+  SuggestExtensions: false
 
 # Documentation:
 #   Enabled: false
 
-LineLength:
+Gemspec/RequireMFA:
   Enabled: false
 
-FrozenStringLiteralComment:
+Layout/LineLength:
   Enabled: false
 
-MethodLength:
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Metrics/MethodLength:
   Enabled: false
 
 Layout/ExtraSpacing:
