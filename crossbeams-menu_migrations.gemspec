@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['jamessil@telkomsa.net']
 
   spec.summary       = 'Manage menu item migrations for Crossbeams framework projects'
-  spec.homepage      = 'https://github.com/NoSoft-SA'
+  spec.homepage      = 'https://github.com/AgrigateOne'
   spec.license       = 'MIT'
   spec.required_ruby_version = '>= 2.7'
 
