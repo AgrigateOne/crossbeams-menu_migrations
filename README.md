@@ -44,7 +44,7 @@ There are nine migration methods:
 * `move_program_function` - moves a `program_functions` record to another program.
 
 ```ruby
-Crossbeams::MenuMigrations::Migrator.migration('Nspack') do
+Crossbeams::MenuMigrations::Migrator.migration('WebAppClass') do
   up do
     add_functional_area 'Dummy'
     add_program 'This', functional_area: 'Dummy'
@@ -58,7 +58,7 @@ Crossbeams::MenuMigrations::Migrator.migration('Nspack') do
   end
 end
 
-Crossbeams::MenuMigrations::Migrator.migration('Nspack') do
+Crossbeams::MenuMigrations::Migrator.migration('WebAppClass') do
   up do
     change_functional_area 'Dummy', rename: 'Fred'
     change_program 'This', functional_area: 'Fred', seq: 33, rename: 'Other'
